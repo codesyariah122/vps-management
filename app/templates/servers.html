@@ -1,0 +1,44 @@
+{% extends "base.html" %}
+
+
+{% block title %}
+Servers - VPS Management
+{% endblock %}
+
+
+{% block content %}
+
+<header class="header">
+
+    <div>
+
+        <h1>Servers</h1>
+
+        <p>
+            Manage and monitor your servers
+        </p>
+
+    </div>
+
+    <div class="server-status">
+
+        <span></span>
+
+        <span id="server-count">
+            Loading...
+        </span>
+
+    </div>
+
+</header>
+
+
+<section id="servers-container" class="servers-grid">
+
+    <div class="loading">
+        Loading servers...
+    </div>
+
+</section>
+
+{% endblock %}

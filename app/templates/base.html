@@ -1,0 +1,69 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>
+        {% block title %}
+        VPS Management
+        {% endblock %}
+    </title>
+
+    <link rel="stylesheet" href="{{ url_for('static', path='css/app.css') }}">
+</head>
+
+<body>
+
+    <aside class="sidebar">
+
+        <div class="brand">
+            VPS Management
+        </div>
+
+        <nav>
+
+            <a href="/">
+                Dashboard
+            </a>
+
+            <a href="/servers">
+                Servers
+            </a>
+
+            <a href="/projects">
+                Projects
+            </a>
+
+            <a href="/services">
+                Services
+            </a>
+
+            <a href="/nginx">
+                Nginx
+            </a>
+
+            <a href="/logs">
+                Logs
+            </a>
+
+        </nav>
+
+    </aside>
+
+
+    <main class="main">
+
+        {% block content %}
+        {% endblock %}
+
+    </main>
+
+
+    <script src="{{ url_for('static', path='js/app.js') }}"></script>
+
+</body>
+
+</html>

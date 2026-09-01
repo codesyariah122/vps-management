@@ -1,0 +1,45 @@
+{% extends "base.html" %}
+
+
+{% block title %}
+Projects - VPS Management
+{% endblock %}
+
+
+{% block content %}
+
+<header class="header">
+
+    <div>
+
+        <h1>Projects</h1>
+
+        <p>
+            Projects detected from Nginx configuration
+        </p>
+
+    </div>
+
+
+    <div class="server-status">
+
+        <span></span>
+
+        <span id="project-count">
+            Loading...
+        </span>
+
+    </div>
+
+</header>
+
+
+<section id="projects-container" class="projects-grid">
+
+    <div class="loading">
+        Loading projects...
+    </div>
+
+</section>
+
+{% endblock %}

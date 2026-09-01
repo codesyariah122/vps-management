@@ -1,0 +1,45 @@
+{% extends "base.html" %}
+
+
+{% block title %}
+Services - VPS Management
+{% endblock %}
+
+
+{% block content %}
+
+<header class="header">
+
+    <div>
+
+        <h1>Services</h1>
+
+        <p>
+            Monitor system services
+        </p>
+
+    </div>
+
+
+    <div class="server-status">
+
+        <span></span>
+
+        <span id="service-count">
+            Loading...
+        </span>
+
+    </div>
+
+</header>
+
+
+<section id="services-container" class="services-grid">
+
+    <div class="loading">
+        Loading services...
+    </div>
+
+</section>
+
+{% endblock %}

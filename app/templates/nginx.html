@@ -1,0 +1,127 @@
+{% extends "base.html" %}
+
+
+{% block title %}
+Nginx - VPS Management
+{% endblock %}
+
+
+{% block content %}
+
+<header class="header">
+
+    <div>
+
+        <h1>Nginx</h1>
+
+        <p>
+            Manage and monitor Nginx
+        </p>
+
+    </div>
+
+
+    <div id="nginx-status" class="service-status unknown">
+        Checking...
+    </div>
+
+</header>
+
+
+<section class="panel">
+
+    <div class="panel-header">
+
+        <h2>
+            Nginx Information
+        </h2>
+
+        <p>
+            Current Nginx configuration
+        </p>
+
+    </div>
+
+
+    <div id="nginx-info" class="nginx-info-grid">
+
+        <div class="nginx-info-item">
+
+            <span>
+                Status
+            </span>
+
+            <strong id="nginx-state">
+                Loading...
+            </strong>
+
+        </div>
+
+
+        <div class="nginx-info-item">
+
+            <span>
+                Configuration
+            </span>
+
+            <strong id="nginx-config">
+                Loading...
+            </strong>
+
+        </div>
+
+
+        <div class="nginx-info-item">
+
+            <span>
+                Sites
+            </span>
+
+            <strong id="nginx-site-count">
+                Loading...
+            </strong>
+
+        </div>
+
+
+        <div class="nginx-info-item">
+
+            <span>
+                Config Test
+            </span>
+
+            <strong id="nginx-test">
+                Loading...
+            </strong>
+
+        </div>
+
+    </div>
+
+</section>
+
+
+<section class="panel nginx-sites-panel">
+
+    <div class="panel-header">
+
+        <h2>
+            Server Blocks
+        </h2>
+
+        <p>
+            Nginx virtual hosts detected on this server
+        </p>
+
+    </div>
+
+
+    <div id="nginx-sites" class="nginx-sites">
+
+        Loading...
+
+    </div>
+
+</section>
+
+{% endblock %}

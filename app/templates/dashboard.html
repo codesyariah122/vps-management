@@ -1,0 +1,132 @@
+{% extends "base.html" %}
+
+{% block title %}
+Dashboard - VPS Management
+{% endblock %}
+
+
+{% block content %}
+
+<header class="header">
+
+    <div>
+        <h1>Dashboard</h1>
+
+        <p>
+            VPS monitoring and management
+        </p>
+    </div>
+
+    <div class="server-status">
+        <span></span>
+        Local Development
+    </div>
+
+</header>
+
+
+<section class="metrics">
+
+    <div class="metric-card">
+        <div class="metric-label">
+            CPU
+        </div>
+
+        <div class="metric-value" id="cpu">
+            --
+        </div>
+    </div>
+
+
+    <div class="metric-card">
+        <div class="metric-label">
+            Memory
+        </div>
+
+        <div class="metric-value" id="memory">
+            --
+        </div>
+    </div>
+
+
+    <div class="metric-card">
+        <div class="metric-label">
+            Disk
+        </div>
+
+        <div class="metric-value" id="disk">
+            --
+        </div>
+    </div>
+
+
+    <div class="metric-card">
+        <div class="metric-label">
+            Swap
+        </div>
+
+        <div class="metric-value" id="swap">
+            --
+        </div>
+    </div>
+
+</section>
+
+
+<section class="panel">
+
+    <div class="panel-header">
+
+        <div>
+            <h2>System Information</h2>
+
+            <p>
+                Current system information
+            </p>
+        </div>
+
+    </div>
+
+
+    <div class="system-grid">
+
+        <div class="system-item">
+            <span>Hostname</span>
+            <strong id="hostname">--</strong>
+        </div>
+
+
+        <div class="system-item">
+            <span>Operating System</span>
+            <strong id="os">--</strong>
+        </div>
+
+
+        <div class="system-item">
+            <span>Kernel</span>
+            <strong id="kernel">--</strong>
+        </div>
+
+
+        <div class="system-item">
+            <span>Architecture</span>
+            <strong id="architecture">--</strong>
+        </div>
+
+
+        <div class="system-item">
+            <span>CPU Cores</span>
+            <strong id="cores">--</strong>
+        </div>
+
+
+        <div class="system-item">
+            <span>Uptime</span>
+            <strong id="uptime">--</strong>
+        </div>
+
+    </div>
+
+</section>
+
+{% endblock %}
