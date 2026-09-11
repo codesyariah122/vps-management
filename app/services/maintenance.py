@@ -20,6 +20,8 @@ MAINTENANCE_DEFAULTS = {
     "maintenance_temp_file_days": 14,
 }
 
+HOTSPOT_ROOTS = ("/var/www", "/var/log", "/var/lib", "/home", "/opt")
+
 
 def get_maintenance_settings() -> dict:
     saved = get_settings()
@@ -64,6 +66,34 @@ def get_journal_size() -> int | None:
     return None
 
 
+def get_storage_hotspots() -> list[dict]:
+    """Return the largest direct children of a small, explicit host allowlist."""
+    hotspots = []
+    for root in HOTSPOT_ROOTS:
+        path = Path(root)
+        if not path.is_dir():
+            continue
+        try:
+            # -x avoids traversing into mounted volumes; depth one bounds output.
+            result = subprocess.run(
+                ["du", "-sk", "-x", "--max-depth=1", str(path)],
+                capture_output=True,
+                text=True,
+                timeout=5,
+            )
+            if result.returncode:
+                continue
+            for line in result.stdout.splitlines():
+                parts = line.split("\t", 1)
+                if len(parts) != 2 or parts[1] == str(path):
+                    continue
+                size = int(parts[0]) * 1024
+                hotspots.append({"path": parts[1], "size": size, "area": root})
+        except (OSError, subprocess.TimeoutExpired, ValueError):
+            continue
+    return sorted(hotspots, key=lambda item: item["size"], reverse=True)[:12]
+
+
 def get_maintenance_overview() -> dict:
     settings = get_maintenance_settings()
     disk = psutil.disk_usage("/")
@@ -93,6 +123,7 @@ def get_maintenance_overview() -> dict:
             {"name": "Docker data", "path": "/var/lib/docker", "size": get_path_size("/var/lib/docker")},
             {"name": "Journal", "path": "journalctl", "size": get_journal_size()},
         ],
+        "storage_hotspots": get_storage_hotspots(),
         "findings": findings,
         "playbook": [
             {"id": "journal", "title": "Review archived system logs", "description": "Check journal size before removing archived logs older than the configured retention.", "command": f"journalctl --disk-usage && journalctl --vacuum-time={settings['maintenance_log_retention_days']}d", "risk": "Review before running"},

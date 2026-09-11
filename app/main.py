@@ -29,6 +29,7 @@ app.add_middleware(
     secret_key=os.getenv("VPS_MANAGEMENT_SESSION_SECRET", os.urandom(32).hex()),
     https_only=True,
     same_site="lax",
+    max_age=3600,
 )
 
 

@@ -278,6 +278,38 @@ async function loadServers() {
 
 }
 
+let adminSession = {authenticated: false, csrf_token: null};
+
+async function getAdminSession() {
+    try {
+        const response = await fetch("/api/auth/session");
+        if (response.ok) adminSession = await response.json();
+    } catch (error) {
+        adminSession = {authenticated: false, csrf_token: null};
+    }
+    return adminSession;
+}
+
+async function runServiceAction(service, action, button) {
+    if (!window.confirm(`Confirm ${action} of ${service.name}? This may briefly interrupt traffic.`)) return;
+    button.disabled = true;
+    button.textContent = "Working…";
+    try {
+        const response = await fetch(`/api/services/${service.id}/action`, {
+            method: "POST",
+            headers: {"Content-Type": "application/json", "X-CSRF-Token": adminSession.csrf_token || ""},
+            body: JSON.stringify({action}),
+        });
+        const data = await response.json();
+        if (!response.ok) throw new Error(data.detail || "Service action failed");
+        await loadServices();
+    } catch (error) {
+        button.disabled = false;
+        button.textContent = "Action failed";
+        window.alert(error.message);
+    }
+}
+
 async function loadServices() {
 
     const container =
@@ -309,6 +341,8 @@ async function loadServices() {
 
         const services =
             data.services || [];
+
+        await getAdminSession();
 
 
         document.getElementById(
@@ -408,6 +442,25 @@ async function loadServices() {
 
                 })
                 .join("");
+
+        container.querySelectorAll(".service-card").forEach((card, index) => {
+            const service = services[index];
+            if (!service) return;
+            const actions = document.createElement("div");
+            if (!adminSession.authenticated || !["running", "failed", "stopped"].includes(service.status)) {
+                const note = document.createElement("p"); note.className = "service-action-note";
+                note.textContent = adminSession.authenticated ? "Unavailable on this host." : "Sign in from Maintenance to enable protected controls.";
+                actions.append(note);
+            } else {
+                actions.className = "service-actions";
+                ["restart", ...(service.id === "nginx" ? ["reload"] : [])].forEach(action => {
+                    const button = document.createElement("button"); button.type = "button"; button.className = "button button-secondary";
+                    button.textContent = action[0].toUpperCase() + action.slice(1);
+                    button.addEventListener("click", () => runServiceAction(service, action, button)); actions.append(button);
+                });
+            }
+            card.append(actions);
+        });
 
 
     } catch (error) {
@@ -1250,6 +1303,20 @@ function setMaintenanceDetails(data) {
         const name = document.createElement("div"); const label = document.createElement("strong"); label.textContent = item.name; const path = document.createElement("span"); path.textContent = item.path; name.append(label, path);
         const size = document.createElement("strong"); size.textContent = formatBytes(item.size); row.append(name, size); storage.append(row);
     });
+    const hotspots = document.getElementById("storage-hotspots");
+    if (hotspots) {
+        hotspots.replaceChildren();
+        (data.storage_hotspots || []).forEach((item, index) => {
+            const row = document.createElement("div"); row.className = "hotspot-row";
+            const rank = document.createElement("span"); rank.className = "hotspot-rank"; rank.textContent = `#${index + 1}`;
+            const path = document.createElement("code"); path.textContent = item.path;
+            const size = document.createElement("strong"); size.textContent = formatBytes(item.size);
+            const copy = document.createElement("button"); copy.type = "button"; copy.className = "icon-button"; copy.title = "Copy path"; copy.textContent = "Copy";
+            copy.addEventListener("click", async () => { await navigator.clipboard?.writeText(item.path); copy.textContent = "Copied"; });
+            row.append(rank, path, size, copy); hotspots.append(row);
+        });
+        if (!hotspots.childElementCount) hotspots.textContent = "No approved storage areas were available for inspection.";
+    }
     const playbook = document.getElementById("maintenance-playbook"); playbook.replaceChildren();
     data.playbook.forEach(item => {
         const card = document.createElement("article"); card.className = "playbook-card";
@@ -1295,6 +1362,26 @@ if (document.getElementById("maintenance-scan")) {
     loadMaintenanceSettings();
     loadMaintenance();
     loadQuarantineCandidates();
+    loadAuditEvents();
+}
+
+async function loadAuditEvents() {
+    const container = document.getElementById("audit-events");
+    if (!container) return;
+    try {
+        const response = await fetch("/api/maintenance/audit");
+        if (!response.ok) throw new Error("Audit unavailable");
+        const events = (await response.json()).events || [];
+        container.replaceChildren();
+        if (!events.length) { container.textContent = "No protected actions have been recorded yet."; return; }
+        events.forEach(event => {
+            const row = document.createElement("div"); row.className = "audit-row";
+            const action = document.createElement("strong"); action.textContent = event.action.replaceAll(".", " · ");
+            const detail = document.createElement("span"); detail.textContent = event.detail;
+            const time = document.createElement("time"); time.textContent = new Date(event.timestamp).toLocaleString(); time.dateTime = event.timestamp;
+            row.append(action, detail, time); container.append(row);
+        });
+    } catch (error) { container.textContent = "Unable to load audit activity."; }
 }
 
 
@@ -1326,7 +1413,7 @@ async function initializeLogin() {
 initializeLogin();
 
 if (document.getElementById("maintenance-scan")) {
-    fetch("/api/auth/session").then(response => response.json()).then(data => { window.maintenanceCsrf = data.csrf_token; });
+    getAdminSession().then(data => { window.maintenanceCsrf = data.csrf_token; });
 }
 
 

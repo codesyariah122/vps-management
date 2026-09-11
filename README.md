@@ -20,9 +20,12 @@ The linked screen recording shows the interactive workflow.
 - Short-horizon live network throughput chart for received and sent traffic.
 - Nginx server-block inventory with domains, SSL state, roots, and proxy targets.
 - Project workspace with search, filters, grid/list views, Git metadata, and project details.
-- Protected Maintenance & Remediation area with manual diagnostics, storage scan, and copyable command playbooks.
+- Protected Maintenance & Remediation area with manual diagnostics, a bounded disk investigator, and copyable command playbooks.
 - Configurable alert thresholds for disk, memory, swap, and maintenance review windows.
 - Admin-only, reversible **project quarantine** for candidate directories not referenced by the current Nginx inventory.
+- Admin-only, CSRF-protected restart controls for an explicit service allowlist; Nginx can also be reloaded.
+- Append-only operational audit trail for sign-in, maintenance configuration, quarantine, and service actions.
+- Wangun Techno branding and an operations footer.
 - Responsive drawer navigation and touch-friendly layouts for mobile devices.
 
 ## Requirements
@@ -127,6 +130,7 @@ Never commit `maintenance.env`, paste its values into tickets, or display it in 
 4. Use **Copy command** to execute a reviewed command in your own terminal.
 5. Treat inactive-project candidates as a review list, not proof that a project is unused.
 6. Moving a project to quarantine is reversible, but does **not** free disk space while it stays on the same filesystem. Verify backup, Nginx, runtime, cron, and deployment dependencies before any move.
+7. Use Service controls only after reviewing the impact. The dashboard permits only restart for its built-in allowlist and reload for Nginx; it never exposes arbitrary shell commands.
 
 ## Container image package
 
@@ -163,7 +167,9 @@ Static files are versioned in the base template to reduce stale browser-cache is
 ## Security notes
 
 - Use HTTPS in front of the app; session cookies are marked secure.
+- Admin sessions expire after one hour; sign in again before protected actions.
 - Keep Maintenance protected; it is the only area that may move directories.
+- Service actions are allowlisted, require a signed admin session and CSRF token, and are recorded without credentials.
 - Quarantine validates the candidate again server-side and requires typing the project name.
 - Add network access controls, login rate limiting, and MFA/SSO before using this in a larger team or production environment.
 - Review your Nginx configuration before relying on project detection.

@@ -2,6 +2,7 @@ from fastapi import APIRouter, HTTPException, Request
 from pydantic import BaseModel, Field
 
 from app.services.auth import is_admin, valid_csrf
+from app.services.audit import get_audit_events, record_audit_event
 from app.services.maintenance import get_inactive_project_candidates, get_maintenance_overview, get_maintenance_settings, quarantine_project, update_maintenance_settings
 
 
@@ -43,7 +44,9 @@ async def settings(request: Request):
 @router.put("/settings")
 async def save_settings(payload: MaintenanceSettingsPayload, request: Request):
     require_admin(request, write=True)
-    return update_maintenance_settings(payload.model_dump())
+    result = update_maintenance_settings(payload.model_dump())
+    record_audit_event("maintenance.settings", "Updated diagnostic thresholds", request)
+    return result
 
 
 @router.get("/candidates")
@@ -56,6 +59,14 @@ async def candidates(request: Request):
 async def quarantine(payload: QuarantinePayload, request: Request):
     require_admin(request, write=True)
     try:
-        return quarantine_project(payload.candidate_id, payload.confirmation)
+        result = quarantine_project(payload.candidate_id, payload.confirmation)
+        record_audit_event("project.quarantine", result["name"], request)
+        return result
     except ValueError as error:
         raise HTTPException(status_code=400, detail=str(error)) from error
+
+
+@router.get("/audit")
+async def audit(request: Request):
+    require_admin(request)
+    return {"events": get_audit_events()}

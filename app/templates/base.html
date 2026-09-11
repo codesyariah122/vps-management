@@ -12,13 +12,13 @@
         {% endblock %}
     </title>
 
-    <link rel="stylesheet" href="{{ url_for('static', path='css/app.css') }}?v=202609112155">
+    <link rel="stylesheet" href="{{ url_for('static', path='css/app.css') }}?v=202609112230">
 </head>
 
 <body>
 
     <header class="mobile-topbar">
-        <a class="mobile-brand" href="/"><span class="brand-mark">V</span><span>VPS Management</span></a>
+        <a class="mobile-brand" href="/"><img class="brand-logo" src="{{ url_for('static', path='images/wangun-techno.svg') }}" alt="Wangun Techno"><span>VPS Management</span></a>
         <button id="mobile-menu-toggle" class="mobile-menu-toggle" type="button" aria-label="Open navigation" aria-expanded="false">☰</button>
     </header>
 
@@ -26,7 +26,7 @@
 
     <aside class="sidebar">
 
-        <div class="brand"><span class="brand-mark">V</span><span>VPS Management</span></div>
+        <div class="brand"><img class="brand-logo" src="{{ url_for('static', path='images/wangun-techno.svg') }}" alt="Wangun Techno"><span>VPS Management <small>Operations Console</small></span></div>
 
         <nav>
 
@@ -72,10 +72,12 @@
         {% block content %}
         {% endblock %}
 
+        <footer class="app-footer"><span>VPS Management</span><span>Built by <strong>Wangun Techno Dev Team</strong></span></footer>
+
     </main>
 
 
-    <script src="{{ url_for('static', path='js/app.js') }}?v=202609112155"></script>
+    <script src="{{ url_for('static', path='js/app.js') }}?v=202609112230"></script>
 
 </body>
 

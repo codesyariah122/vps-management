@@ -1,0 +1,6 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" role="img" aria-label="Wangun Techno">
+  <defs><linearGradient id="g" x1="6" y1="4" x2="58" y2="60" gradientUnits="userSpaceOnUse"><stop stop-color="#60a5fa"/><stop offset="1" stop-color="#1d4ed8"/></linearGradient></defs>
+  <rect width="64" height="64" rx="18" fill="#0f172a"/>
+  <path d="M12 16h10l5 24 6-15h7l6 15 5-24h10L51 50H41l-5-13-5 13H21L12 16Z" fill="url(#g)"/>
+  <circle cx="50" cy="15" r="5" fill="#2dd4bf"/>
+</svg>

@@ -46,6 +46,7 @@ body {
 }
 
 .brand-mark { display: grid; width: 28px; height: 28px; place-items: center; border-radius: 8px; background: linear-gradient(135deg, #60a5fa, #2563eb); box-shadow: 0 6px 16px rgba(37,99,235,.45); font-size: 14px; }
+.brand-logo { width: 34px; height: 34px; flex: 0 0 auto; filter: drop-shadow(0 6px 14px rgba(37,99,235,.35)); }.brand > span { display: flex; flex-direction: column; }.brand small { margin-top: 2px; color: #94a3b8; font-size: 10px; font-weight: 600; letter-spacing: .04em; text-transform: uppercase; }
 
 
 .sidebar nav {
@@ -84,6 +85,7 @@ body {
     padding: 32px;
     background: radial-gradient(circle at 80% 0%, rgba(219,234,254,.7), transparent 27%), #f5f7fa;
 }
+.app-footer { display: flex; justify-content: space-between; gap: 16px; margin-top: 40px; padding: 20px 2px 0; border-top: 1px solid #dbe3ef; color: #64748b; font-size: 12px; }.app-footer strong { color: #334155; }
 
 
 .header {
@@ -285,7 +287,7 @@ body {
 @media (max-width: 700px) {
     body { background: #f5f7fa; }
     .mobile-topbar { position: sticky; z-index: 40; top: 0; display: flex; align-items: center; justify-content: space-between; height: 64px; padding: 0 16px; background: #0f172a; color: white; box-shadow: 0 2px 10px rgba(15,23,42,.2); }
-    .mobile-brand { display: inline-flex; align-items: center; gap: 9px; color: white; font-size: 15px; font-weight: 700; text-decoration: none; }.mobile-brand .brand-mark { width: 26px; height: 26px; }
+    .mobile-brand { display: inline-flex; align-items: center; gap: 9px; color: white; font-size: 15px; font-weight: 700; text-decoration: none; }.mobile-brand .brand-logo { width: 28px; height: 28px; }
     .mobile-menu-toggle { width: 42px; height: 42px; border: 1px solid rgba(255,255,255,.18); border-radius: 10px; background: rgba(255,255,255,.08); color: white; cursor: pointer; font-size: 21px; line-height: 1; }
     .mobile-menu-backdrop { position: fixed; z-index: 45; inset: 0; border: 0; background: rgba(15,23,42,.52); opacity: 0; pointer-events: none; transition: opacity .2s ease; }
     .sidebar { display: block; z-index: 50; width: min(280px, 82vw); padding: 20px 14px; transform: translateX(-105%); transition: transform .22s ease; box-shadow: 18px 0 42px rgba(15,23,42,.27); }
@@ -628,6 +630,7 @@ body {
 
     gap: 16px;
 }
+.service-actions { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 20px; }.service-actions .button { padding: 8px 11px; font-size: 13px; }.service-action-note { margin: 20px 0 0; color: #94a3b8; font-size: 12px; }
 
 
 .service-detail {
@@ -997,8 +1000,10 @@ body {
 .quarantine-row { display: flex; align-items: center; justify-content: space-between; gap: 18px; padding: 16px; border: 1px solid #fecaca; border-radius: 10px; background: #fffafa; }
 .quarantine-row h3 { margin: 0 0 4px; font-size: 15px; }.quarantine-row p { margin: 0 0 5px; color: #64748b; font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: 11px; overflow-wrap: anywhere; }.quarantine-row span { color: #9f1239; font-size: 12px; }
 .button-danger { background: #b91c1c; }.button-danger:hover { background: #991b1b; }
+.storage-hotspots, .audit-events { display: flex; flex-direction: column; gap: 8px; }.hotspot-row { display: grid; grid-template-columns: 38px minmax(0, 1fr) auto auto; align-items: center; gap: 12px; padding: 12px 14px; border: 1px solid #e5eaf2; border-radius: 10px; background: #fbfdff; }.hotspot-rank { color: #64748b; font-size: 12px; font-weight: 700; }.hotspot-row code { overflow: hidden; color: #334155; font: 12px ui-monospace, SFMono-Regular, Menlo, monospace; text-overflow: ellipsis; white-space: nowrap; }.hotspot-row strong { font-size: 13px; }.icon-button { border: 1px solid #cbd5e1; border-radius: 7px; padding: 6px 8px; background: white; color: #475569; cursor: pointer; font-size: 11px; font-weight: 700; }.audit-row { display: grid; grid-template-columns: 180px minmax(0, 1fr) auto; align-items: center; gap: 14px; padding: 12px 0; border-bottom: 1px solid #eef2f7; }.audit-row:last-child { border-bottom: 0; }.audit-row strong { color: #2563eb; font-size: 13px; text-transform: capitalize; }.audit-row span, .audit-row time { color: #64748b; font-size: 12px; }.audit-row time { white-space: nowrap; }
 .login-shell { display: grid; min-height: calc(100vh - 64px); place-items: center; }.login-card { width: min(420px, 100%); padding: 30px; border: 1px solid #e2e8f0; border-radius: 16px; background: white; box-shadow: 0 20px 50px rgba(15,23,42,.1); }.login-card h1 { margin: 5px 0 8px; }.login-card p { margin: 0 0 22px; color: #64748b; }.login-card form { display: flex; flex-direction: column; gap: 13px; }.login-card label { display: flex; flex-direction: column; gap: 6px; font-weight: 600; }.login-card input { padding: 11px; border: 1px solid #cbd5e1; border-radius: 8px; font: inherit; }
 @media (max-width: 640px) { .quarantine-row { align-items: flex-start; flex-direction: column; } }
+@media (max-width: 640px) { .app-footer { align-items: flex-start; flex-direction: column; margin-top: 28px; }.hotspot-row { grid-template-columns: 30px minmax(0, 1fr) auto; }.hotspot-row .icon-button { grid-column: 2 / -1; justify-self: start; }.audit-row { grid-template-columns: 1fr; gap: 4px; }.audit-row time { white-space: normal; } }
 
 /* Project workspace */
 .project-command-bar { display: flex; align-items: center; gap: 10px; margin-bottom: 16px; padding: 12px; border: 1px solid #e2e8f0; border-radius: 14px; background: rgba(255,255,255,.86); box-shadow: 0 10px 30px rgba(15,23,42,.04); }

@@ -172,6 +172,37 @@ SERVICE_DEFINITIONS = [
     },
 ]
 
+
+def get_service_definition(service_id: str) -> dict | None:
+    return next((item for item in SERVICE_DEFINITIONS if item["id"] == service_id), None)
+
+
+def run_service_action(service_id: str, action: str) -> dict:
+    """Run a limited systemctl action for an explicitly allowlisted service."""
+    definition = get_service_definition(service_id)
+    if not definition:
+        raise ValueError("Service is not allowlisted for dashboard control.")
+    allowed_actions = {"restart"}
+    if service_id == "nginx":
+        allowed_actions.add("reload")
+    if action not in allowed_actions:
+        raise ValueError("This action is not available for the selected service.")
+    if not is_linux() or not command_exists("systemctl"):
+        raise ValueError("Service control is available only on a systemd Linux host.")
+    try:
+        result = subprocess.run(
+            ["systemctl", action, definition["linux_service"]],
+            capture_output=True,
+            text=True,
+            timeout=20,
+        )
+    except (OSError, subprocess.TimeoutExpired) as error:
+        raise ValueError("The service command did not complete safely.") from error
+    if result.returncode != 0:
+        detail = (result.stderr or result.stdout or "systemctl returned an error").strip()
+        raise ValueError(detail[:220])
+    return {"id": service_id, "action": action, "status": get_linux_service_status(definition["linux_service"])}
+
 def get_services():
 
     services = []

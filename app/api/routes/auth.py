@@ -1,6 +1,7 @@
 from fastapi import APIRouter, HTTPException, Request
 from pydantic import BaseModel
 
+from app.services.audit import record_audit_event
 from app.services.auth import authentication_configured, is_admin, start_session, verify_password
 
 
@@ -22,10 +23,14 @@ async def login(payload: LoginPayload, request: Request):
         raise HTTPException(status_code=503, detail="Admin authentication is not configured on this server.")
     if not verify_password(payload.password):
         raise HTTPException(status_code=401, detail="Invalid password")
-    return {"authenticated": True, "csrf_token": start_session(request.session)}
+    csrf_token = start_session(request.session)
+    record_audit_event("auth.login", "Administrator session started", request)
+    return {"authenticated": True, "csrf_token": csrf_token}
 
 
 @router.post("/logout")
 async def logout(request: Request):
+    if is_admin(request):
+        record_audit_event("auth.logout", "Administrator session ended", request)
     request.session.clear()
     return {"authenticated": False}
