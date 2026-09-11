@@ -141,7 +141,7 @@ The workflow publishes:
 
 ```text
 ghcr.io/codesyariah122/vps-management:latest
-ghcr.io/codesyariah122/vps-management:v1.0.0
+ghcr.io/codesyariah122/vps-management:1.0.0
 ```
 
 Run the image for development or a limited containerized deployment:
