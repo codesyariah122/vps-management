@@ -14,9 +14,7 @@ Projects - VPS Management
 
         <h1>Projects</h1>
 
-        <p>
-            Projects detected from Nginx configuration
-        </p>
+        <p>Workspace operasional untuk project yang terdeteksi dari Nginx</p>
 
     </div>
 
@@ -33,6 +31,32 @@ Projects - VPS Management
 
 </header>
 
+<section class="project-command-bar" aria-label="Project tools">
+    <div class="project-search-wrap">
+        <span aria-hidden="true">⌕</span>
+        <input id="project-search" type="search" placeholder="Cari project, domain, path, atau branch...">
+    </div>
+    <select id="project-framework-filter" aria-label="Filter framework">
+        <option value="all">Semua framework</option>
+    </select>
+    <select id="project-status-filter" aria-label="Filter status">
+        <option value="all">Semua status</option>
+        <option value="healthy">Directory found</option>
+        <option value="missing">Missing directory</option>
+        <option value="dirty">Git changes</option>
+    </select>
+    <div class="project-view-toggle" role="group" aria-label="Project view">
+        <button class="view-toggle active" type="button" data-view="grid">Grid</button>
+        <button class="view-toggle" type="button" data-view="list">List</button>
+    </div>
+</section>
+
+<section class="project-summary" id="project-summary">
+    <div><span>Total</span><strong id="summary-total">--</strong></div>
+    <div><span>Healthy</span><strong id="summary-healthy">--</strong></div>
+    <div><span>Git changes</span><strong id="summary-dirty">--</strong></div>
+    <div><span>Missing</span><strong id="summary-missing">--</strong></div>
+</section>
 
 <section id="projects-container" class="projects-grid">
 
@@ -41,5 +65,13 @@ Projects - VPS Management
     </div>
 
 </section>
+
+<div id="project-modal" class="project-modal" hidden>
+    <div class="project-modal-backdrop" data-close-project-modal></div>
+    <section class="project-modal-card" role="dialog" aria-modal="true" aria-labelledby="project-modal-title">
+        <button class="modal-close" data-close-project-modal aria-label="Close details">×</button>
+        <div id="project-modal-content"></div>
+    </section>
+</div>
 
 {% endblock %}

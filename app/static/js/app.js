@@ -923,7 +923,7 @@ loadServers();
 
 loadServices();
 
-loadProjects();
+if (document.getElementById("projects-container")) loadProjectWorkspace();
 
 
 function formatBytes(bytes) {
@@ -1026,3 +1026,122 @@ if (document.getElementById("logs-output")) {
     document.getElementById("refresh-logs").addEventListener("click", loadLogs);
 }
 loadSettings();
+
+
+let managedProjects = [];
+let projectView = "grid";
+
+function projectStatus(project) {
+    if (!project.exists || !project.is_directory && project.type !== "proxy") return "missing";
+    if (project.git?.is_dirty) return "dirty";
+    return "healthy";
+}
+
+function displayDate(value) {
+    return value ? new Date(value).toLocaleString([], {dateStyle: "medium", timeStyle: "short"}) : "No activity data";
+}
+
+function createProjectCard(project) {
+    const status = projectStatus(project);
+    const card = document.createElement("article");
+    card.className = "project-workspace-card";
+    card.tabIndex = 0;
+    card.setAttribute("role", "button");
+    card.setAttribute("aria-label", `Open details for ${project.name}`);
+
+    const header = document.createElement("div"); header.className = "workspace-card-header";
+    const title = document.createElement("div");
+    const name = document.createElement("h2"); name.textContent = project.name;
+    const path = document.createElement("p"); path.className = "workspace-path"; path.textContent = project.path || project.proxy_pass?.[0] || "Reverse proxy";
+    title.append(name, path);
+    const badge = document.createElement("span"); badge.className = `workspace-status ${status}`;
+    badge.textContent = status === "healthy" ? "Healthy" : status === "dirty" ? "Git changes" : "Missing";
+    header.append(title, badge);
+
+    const tags = document.createElement("div"); tags.className = "project-tags";
+    [project.framework, project.ssl ? "SSL" : "HTTP", project.type === "proxy" ? "Proxy" : "Filesystem"].forEach(label => {
+        const tag = document.createElement("span"); tag.textContent = label; tags.append(tag);
+    });
+
+    const meta = document.createElement("div"); meta.className = "workspace-meta";
+    const domain = document.createElement("div"); domain.innerHTML = "<span>Primary domain</span>";
+    const domainValue = document.createElement("strong"); domainValue.textContent = project.domains?.[0] || "Not configured"; domain.append(domainValue);
+    const git = document.createElement("div"); git.innerHTML = "<span>Git branch</span>";
+    const gitValue = document.createElement("strong"); gitValue.textContent = project.git?.branch || "Not a repository"; git.append(gitValue);
+    meta.append(domain, git);
+
+    const footer = document.createElement("div"); footer.className = "workspace-card-footer";
+    const updated = document.createElement("span"); updated.textContent = `Updated ${displayDate(project.activity?.last_modified)}`;
+    const details = document.createElement("span"); details.className = "details-arrow"; details.textContent = "Details →";
+    footer.append(updated, details);
+    card.append(header, tags, meta, footer);
+    card.addEventListener("click", () => openProjectModal(project));
+    card.addEventListener("keydown", event => { if (event.key === "Enter" || event.key === " ") { event.preventDefault(); openProjectModal(project); } });
+    return card;
+}
+
+function renderProjectWorkspace() {
+    const search = document.getElementById("project-search").value.toLowerCase().trim();
+    const framework = document.getElementById("project-framework-filter").value;
+    const statusFilter = document.getElementById("project-status-filter").value;
+    const projects = managedProjects.filter(project => {
+        const haystack = [project.name, project.path, project.framework, project.git?.branch, ...(project.domains || [])].join(" ").toLowerCase();
+        return (!search || haystack.includes(search)) && (framework === "all" || project.framework === framework) && (statusFilter === "all" || projectStatus(project) === statusFilter);
+    });
+    const container = document.getElementById("projects-container");
+    container.classList.toggle("projects-list", projectView === "list");
+    container.replaceChildren();
+    if (!projects.length) {
+        const empty = document.createElement("div"); empty.className = "project-empty"; empty.textContent = "No projects match the current filters."; container.append(empty); return;
+    }
+    projects.forEach(project => container.append(createProjectCard(project)));
+}
+
+function updateProjectSummary() {
+    const statuses = managedProjects.map(projectStatus);
+    document.getElementById("summary-total").textContent = managedProjects.length;
+    document.getElementById("summary-healthy").textContent = statuses.filter(status => status === "healthy").length;
+    document.getElementById("summary-dirty").textContent = statuses.filter(status => status === "dirty").length;
+    document.getElementById("summary-missing").textContent = statuses.filter(status => status === "missing").length;
+}
+
+function openProjectModal(project) {
+    const modal = document.getElementById("project-modal");
+    const content = document.getElementById("project-modal-content");
+    content.replaceChildren();
+    const eyebrow = document.createElement("span"); eyebrow.className = "eyebrow"; eyebrow.textContent = "Project workspace";
+    const title = document.createElement("h2"); title.id = "project-modal-title"; title.textContent = project.name;
+    const intro = document.createElement("p"); intro.className = "modal-path"; intro.textContent = project.path || project.proxy_pass?.join(", ") || "Reverse proxy";
+    const actions = document.createElement("div"); actions.className = "project-modal-actions";
+    if (project.domains?.[0] && !project.domains[0].includes("_")) {
+        const open = document.createElement("a"); open.className = "button"; open.target = "_blank"; open.rel = "noreferrer"; open.href = `${project.ssl ? "https" : "http"}://${project.domains[0]}`; open.textContent = "Open site ↗"; actions.append(open);
+    }
+    const copy = document.createElement("button"); copy.className = "button button-secondary"; copy.type = "button"; copy.textContent = "Copy path"; copy.disabled = !project.path;
+    copy.addEventListener("click", async () => { await navigator.clipboard?.writeText(project.path); copy.textContent = "Copied"; }); actions.append(copy);
+    const notice = document.createElement("p"); notice.className = "action-notice"; notice.textContent = "Deploy, restart, and configuration edits will be enabled after admin authentication is configured.";
+    const details = document.createElement("div"); details.className = "project-detail-grid";
+    const rows = [["Framework", project.framework], ["Status", projectStatus(project)], ["SSL", project.ssl ? "Enabled" : "Disabled"], ["Git branch", project.git?.branch || "Not a repository"], ["Last commit", project.git?.latest_commit ? `${project.git.latest_commit.hash} · ${project.git.latest_commit.message}` : "Unavailable"], ["Last detected change", displayDate(project.activity?.last_modified)], ["Domains", project.domains?.join(", ") || "None"], ["Listen / upstream", project.listen?.join(", ") || project.proxy_pass?.join(", ") || "None"]];
+    rows.forEach(([label, value]) => { const row = document.createElement("div"); const key = document.createElement("span"); const val = document.createElement("strong"); key.textContent = label; val.textContent = value; row.append(key, val); details.append(row); });
+    content.append(eyebrow, title, intro, actions, notice, details);
+    modal.hidden = false;
+    document.body.classList.add("modal-open");
+}
+
+function closeProjectModal() { document.getElementById("project-modal").hidden = true; document.body.classList.remove("modal-open"); }
+
+async function loadProjectWorkspace() {
+    const container = document.getElementById("projects-container");
+    try {
+        const response = await fetch("/api/projects/");
+        if (!response.ok) throw new Error("Failed to load projects");
+        managedProjects = (await response.json()).projects || [];
+        document.getElementById("project-count").textContent = `${managedProjects.length} Projects`;
+        const frameworkFilter = document.getElementById("project-framework-filter");
+        [...new Set(managedProjects.map(project => project.framework).filter(Boolean))].sort().forEach(framework => { const option = document.createElement("option"); option.value = framework; option.textContent = framework; frameworkFilter.append(option); });
+        updateProjectSummary(); renderProjectWorkspace();
+        ["project-search", "project-framework-filter", "project-status-filter"].forEach(id => document.getElementById(id).addEventListener(id === "project-search" ? "input" : "change", renderProjectWorkspace));
+        document.querySelectorAll(".view-toggle").forEach(button => button.addEventListener("click", () => { projectView = button.dataset.view; document.querySelectorAll(".view-toggle").forEach(item => item.classList.toggle("active", item === button)); renderProjectWorkspace(); }));
+        document.querySelectorAll("[data-close-project-modal]").forEach(button => button.addEventListener("click", closeProjectModal));
+        document.addEventListener("keydown", event => { if (event.key === "Escape" && !document.getElementById("project-modal").hidden) closeProjectModal(); });
+    } catch (error) { container.textContent = "Failed to load project workspace."; }
+}

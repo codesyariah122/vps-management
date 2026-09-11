@@ -19,37 +19,35 @@
 
     <aside class="sidebar">
 
-        <div class="brand">
-            VPS Management
-        </div>
+        <div class="brand"><span class="brand-mark">V</span><span>VPS Management</span></div>
 
         <nav>
 
-            <a href="/">
+            <a class="{% if request.url.path == '/' %}active{% endif %}" href="/">
                 Dashboard
             </a>
 
-            <a href="/servers">
+            <a class="{% if request.url.path == '/servers' %}active{% endif %}" href="/servers">
                 Servers
             </a>
 
-            <a href="/projects">
+            <a class="{% if request.url.path == '/projects' %}active{% endif %}" href="/projects">
                 Projects
             </a>
 
-            <a href="/services">
+            <a class="{% if request.url.path == '/services' %}active{% endif %}" href="/services">
                 Services
             </a>
 
-            <a href="/nginx">
+            <a class="{% if request.url.path == '/nginx' %}active{% endif %}" href="/nginx">
                 Nginx
             </a>
 
-            <a href="/logs">
+            <a class="{% if request.url.path == '/logs' %}active{% endif %}" href="/logs">
                 Logs
             </a>
 
-            <a href="/settings">
+            <a class="{% if request.url.path == '/settings' %}active{% endif %}" href="/settings">
                 Settings
             </a>
 

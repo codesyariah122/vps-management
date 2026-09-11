@@ -1,5 +1,8 @@
 from datetime import datetime, timezone
+import hashlib
 from pathlib import Path
+import shutil
+import subprocess
 
 from app.services.nginx import (
     get_nginx_config_path,
@@ -112,10 +115,33 @@ def get_git_info(path: Path):
 
             branch = head[:8]
 
-        return {
+        info = {
             "is_repository": True,
             "branch": branch,
         }
+
+        if shutil.which("git"):
+            try:
+                status = subprocess.run(
+                    ["git", "-C", str(path), "status", "--porcelain"],
+                    capture_output=True,
+                    text=True,
+                    timeout=3,
+                )
+                latest = subprocess.run(
+                    ["git", "-C", str(path), "log", "-1", "--format=%h|%cI|%s"],
+                    capture_output=True,
+                    text=True,
+                    timeout=3,
+                )
+                info["is_dirty"] = bool(status.stdout.strip())
+                if latest.returncode == 0 and latest.stdout.strip():
+                    commit, committed_at, message = latest.stdout.strip().split("|", 2)
+                    info["latest_commit"] = {"hash": commit, "committed_at": committed_at, "message": message}
+            except (OSError, subprocess.TimeoutExpired, ValueError):
+                pass
+
+        return info
 
     except OSError:
 
@@ -229,6 +255,7 @@ def build_project(
     )
 
     return {
+        "id": hashlib.sha256(str(path).encode()).hexdigest()[:12],
         "name": path.name or str(path),
         "path": str(path),
         "exists": exists,
@@ -245,6 +272,7 @@ def build_project(
         "type": "filesystem",
         "proxy_pass": proxy_pass or [],
         "activity": get_project_activity(path) if is_directory else {"last_modified": None},
+        "health": "unmonitored",
     }
 
 
@@ -262,6 +290,7 @@ def build_proxy_project(
     )
 
     return {
+        "id": hashlib.sha256(primary_domain.encode()).hexdigest()[:12],
         "name": primary_domain,
         "path": None,
         "exists": True,
@@ -277,6 +306,7 @@ def build_proxy_project(
         "type": "proxy",
         "proxy_pass": proxy_pass,
         "activity": {"last_modified": None},
+        "health": "unmonitored",
     }
 
 
