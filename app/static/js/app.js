@@ -1328,3 +1328,22 @@ initializeLogin();
 if (document.getElementById("maintenance-scan")) {
     fetch("/api/auth/session").then(response => response.json()).then(data => { window.maintenanceCsrf = data.csrf_token; });
 }
+
+
+const mobileMenuToggle = document.getElementById("mobile-menu-toggle");
+const mobileMenuBackdrop = document.getElementById("mobile-menu-backdrop");
+
+function closeMobileMenu() {
+    document.body.classList.remove("mobile-menu-open");
+    mobileMenuToggle?.setAttribute("aria-expanded", "false");
+}
+
+if (mobileMenuToggle) {
+    mobileMenuToggle.addEventListener("click", () => {
+        const isOpen = document.body.classList.toggle("mobile-menu-open");
+        mobileMenuToggle.setAttribute("aria-expanded", String(isOpen));
+    });
+    mobileMenuBackdrop.addEventListener("click", closeMobileMenu);
+    document.querySelectorAll(".sidebar a").forEach(link => link.addEventListener("click", closeMobileMenu));
+    window.addEventListener("resize", () => { if (window.innerWidth > 700) closeMobileMenu(); });
+}

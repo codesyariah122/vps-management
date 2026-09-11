@@ -12,10 +12,17 @@
         {% endblock %}
     </title>
 
-    <link rel="stylesheet" href="{{ url_for('static', path='css/app.css') }}?v=202609111805">
+    <link rel="stylesheet" href="{{ url_for('static', path='css/app.css') }}?v=202609112155">
 </head>
 
 <body>
+
+    <header class="mobile-topbar">
+        <a class="mobile-brand" href="/"><span class="brand-mark">V</span><span>VPS Management</span></a>
+        <button id="mobile-menu-toggle" class="mobile-menu-toggle" type="button" aria-label="Open navigation" aria-expanded="false">☰</button>
+    </header>
+
+    <button id="mobile-menu-backdrop" class="mobile-menu-backdrop" type="button" aria-label="Close navigation"></button>
 
     <aside class="sidebar">
 
@@ -68,7 +75,7 @@
     </main>
 
 
-    <script src="{{ url_for('static', path='js/app.js') }}?v=202609111805"></script>
+    <script src="{{ url_for('static', path='js/app.js') }}?v=202609112155"></script>
 
 </body>
 
