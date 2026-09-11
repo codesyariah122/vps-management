@@ -965,6 +965,13 @@ body {
 @media (max-width: 640px) { .alerts-panel, .health-row, .process-row { align-items: flex-start; flex-direction: column; } .settings-form { grid-template-columns: 1fr; } }
 @media (max-width: 640px) { .maintenance-resources, .storage-scan { grid-template-columns: 1fr; } }
 
+.quarantine-candidates { display: flex; flex-direction: column; gap: 10px; }
+.quarantine-row { display: flex; align-items: center; justify-content: space-between; gap: 18px; padding: 16px; border: 1px solid #fecaca; border-radius: 10px; background: #fffafa; }
+.quarantine-row h3 { margin: 0 0 4px; font-size: 15px; }.quarantine-row p { margin: 0 0 5px; color: #64748b; font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: 11px; overflow-wrap: anywhere; }.quarantine-row span { color: #9f1239; font-size: 12px; }
+.button-danger { background: #b91c1c; }.button-danger:hover { background: #991b1b; }
+.login-shell { display: grid; min-height: calc(100vh - 64px); place-items: center; }.login-card { width: min(420px, 100%); padding: 30px; border: 1px solid #e2e8f0; border-radius: 16px; background: white; box-shadow: 0 20px 50px rgba(15,23,42,.1); }.login-card h1 { margin: 5px 0 8px; }.login-card p { margin: 0 0 22px; color: #64748b; }.login-card form { display: flex; flex-direction: column; gap: 13px; }.login-card label { display: flex; flex-direction: column; gap: 6px; font-weight: 600; }.login-card input { padding: 11px; border: 1px solid #cbd5e1; border-radius: 8px; font: inherit; }
+@media (max-width: 640px) { .quarantine-row { align-items: flex-start; flex-direction: column; } }
+
 /* Project workspace */
 .project-command-bar { display: flex; align-items: center; gap: 10px; margin-bottom: 16px; padding: 12px; border: 1px solid #e2e8f0; border-radius: 14px; background: rgba(255,255,255,.86); box-shadow: 0 10px 30px rgba(15,23,42,.04); }
 .project-search-wrap { display: flex; align-items: center; gap: 8px; flex: 1 1 300px; min-width: 220px; padding: 0 11px; border: 1px solid #dbe3ef; border-radius: 9px; background: #f8fafc; color: #64748b; }

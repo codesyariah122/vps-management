@@ -1,6 +1,9 @@
 from fastapi import FastAPI, Request
 from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
+from starlette.middleware.sessions import SessionMiddleware
+from starlette.responses import RedirectResponse
+import os
 
 from app.api.routes import (
     dashboard,
@@ -11,6 +14,7 @@ from app.api.routes import (
     logs,
     settings,
     maintenance,
+    auth,
 )
 
 
@@ -18,6 +22,13 @@ app = FastAPI(
     title="VPS Management",
     description="VPS monitoring and management dashboard",
     version="0.1.0",
+)
+
+app.add_middleware(
+    SessionMiddleware,
+    secret_key=os.getenv("VPS_MANAGEMENT_SESSION_SECRET", os.urandom(32).hex()),
+    https_only=True,
+    same_site="lax",
 )
 
 
@@ -87,7 +98,16 @@ async def settings_page(request: Request):
 
 @app.get("/maintenance")
 async def maintenance_page(request: Request):
+    if not request.session.get("is_admin"):
+        return RedirectResponse("/login", status_code=303)
     return templates.TemplateResponse(request=request, name="maintenance.html")
+
+
+@app.get("/login")
+async def login_page(request: Request):
+    if request.session.get("is_admin"):
+        return RedirectResponse("/maintenance", status_code=303)
+    return templates.TemplateResponse(request=request, name="login.html")
 
 @app.get("/health")
 async def health():
@@ -136,3 +156,4 @@ app.include_router(
 app.include_router(logs.router, prefix="/api/logs", tags=["Logs"])
 app.include_router(settings.router, prefix="/api/settings", tags=["Settings"])
 app.include_router(maintenance.router, prefix="/api/maintenance", tags=["Maintenance"])
+app.include_router(auth.router, prefix="/api/auth", tags=["Authentication"])

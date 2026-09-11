@@ -1,11 +1,15 @@
 """Read-only host diagnostics for manual maintenance planning."""
 import shutil
 import subprocess
+import os
+import hashlib
+from datetime import datetime, timezone
 from pathlib import Path
 
 import psutil
 
 from app.services.settings import get_settings, update_settings
+from app.services.projects import get_projects
 
 
 MAINTENANCE_DEFAULTS = {
@@ -97,3 +101,45 @@ def get_maintenance_overview() -> dict:
             {"id": "processes", "title": "Investigate resource-heavy processes", "description": "Review the process list before restarting any allowlisted application service.", "command": "ps aux --sort=-%mem | head -n 15", "risk": "Inspect only"},
         ],
     }
+
+
+def get_inactive_project_candidates() -> list[dict]:
+    active_paths = {Path(project["path"]).resolve() for project in get_projects() if project.get("path") and project.get("exists")}
+    parent_paths = {path.parent for path in active_paths}
+    for raw_path in os.getenv("VPS_MANAGEMENT_PROJECT_ROOTS", "").split(","):
+        if raw_path.strip() and Path(raw_path.strip()).is_dir():
+            parent_paths.add(Path(raw_path.strip()).resolve())
+    candidates = []
+    for parent in parent_paths:
+        try:
+            for path in parent.iterdir():
+                if not path.is_dir() or path.is_symlink() or path.resolve() in active_paths:
+                    continue
+                resolved = path.resolve()
+                if any(active.is_relative_to(resolved) for active in active_paths):
+                    continue
+                candidates.append({
+                    "id": hashlib.sha256(str(resolved).encode()).hexdigest()[:16], "name": path.name,
+                    "path": str(resolved), "size": get_path_size(str(resolved)),
+                    "last_modified": datetime.fromtimestamp(path.stat().st_mtime, tz=timezone.utc).isoformat(),
+                    "reason": "Not referenced by the current Nginx project inventory.",
+                })
+        except OSError:
+            continue
+    return sorted(candidates, key=lambda item: item["last_modified"])
+
+
+def quarantine_project(candidate_id: str, confirmation: str) -> dict:
+    candidate = next((item for item in get_inactive_project_candidates() if item["id"] == candidate_id), None)
+    if not candidate:
+        raise ValueError("Candidate is no longer eligible for quarantine.")
+    if confirmation != candidate["name"]:
+        raise ValueError("Project name confirmation does not match.")
+    source = Path(candidate["path"])
+    if source.is_symlink() or not source.is_dir():
+        raise ValueError("Only a verified project directory can be quarantined.")
+    root = Path(os.getenv("VPS_MANAGEMENT_QUARANTINE_ROOT", "/var/www/.vps-management-quarantine")).resolve()
+    root.mkdir(parents=True, exist_ok=True)
+    destination = root / f"{datetime.now(timezone.utc).strftime('%Y%m%dT%H%M%SZ')}-{source.name}"
+    shutil.move(str(source), str(destination))
+    return {"status": "quarantined", "name": candidate["name"], "from": str(source), "to": str(destination)}

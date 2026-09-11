@@ -1285,7 +1285,7 @@ async function loadMaintenanceSettings() {
     form.addEventListener("submit", async event => {
         event.preventDefault(); const feedback = document.getElementById("maintenance-settings-feedback");
         const values = Object.fromEntries(new FormData(form)); Object.keys(values).forEach(key => { values[key] = Number(values[key]); });
-        try { const response = await fetch("/api/maintenance/settings", {method: "PUT", headers: {"Content-Type": "application/json"}, body: JSON.stringify(values)}); if (!response.ok) throw new Error("Save failed"); feedback.textContent = "Saved. Run a scan to apply the new thresholds."; } catch (error) { feedback.textContent = "Unable to save configuration."; }
+        try { const response = await fetch("/api/maintenance/settings", {method: "PUT", headers: {"Content-Type": "application/json", "X-CSRF-Token": window.maintenanceCsrf || ""}, body: JSON.stringify(values)}); if (!response.ok) throw new Error("Save failed"); feedback.textContent = "Saved. Run a scan to apply the new thresholds."; } catch (error) { feedback.textContent = "Unable to save configuration."; }
     });
 }
 
@@ -1294,4 +1294,37 @@ if (document.getElementById("maintenance-scan")) {
     document.getElementById("maintenance-scan").addEventListener("click", loadMaintenance);
     loadMaintenanceSettings();
     loadMaintenance();
+    loadQuarantineCandidates();
+}
+
+
+async function loadQuarantineCandidates() {
+    const container = document.getElementById("quarantine-candidates");
+    if (!container) return;
+    try {
+        const response = await fetch("/api/maintenance/candidates");
+        if (!response.ok) throw new Error("Could not load candidates");
+        const candidates = (await response.json()).candidates || [];
+        container.replaceChildren();
+        if (!candidates.length) { container.textContent = "No inactive project folders were detected."; return; }
+        candidates.forEach(candidate => {
+            const row = document.createElement("article"); row.className = "quarantine-row";
+            const info = document.createElement("div"); const title = document.createElement("h3"); title.textContent = candidate.name; const path = document.createElement("p"); path.textContent = candidate.path; const detail = document.createElement("span"); detail.textContent = `${formatBytes(candidate.size || 0)} · ${candidate.reason}`; info.append(title, path, detail);
+            const button = document.createElement("button"); button.className = "button button-danger"; button.type = "button"; button.textContent = "Move to quarantine";
+            button.addEventListener("click", async () => { const confirmation = window.prompt(`Type ${candidate.name} to confirm moving it to quarantine.`); if (confirmation === null) return; button.disabled = true; const result = await fetch("/api/maintenance/quarantine", {method: "POST", headers: {"Content-Type": "application/json", "X-CSRF-Token": window.maintenanceCsrf || ""}, body: JSON.stringify({candidate_id: candidate.id, confirmation})}); if (!result.ok) { button.disabled = false; alert((await result.json()).detail || "Unable to quarantine project."); return; } loadQuarantineCandidates(); loadMaintenance(); });
+            row.append(info, button); container.append(row);
+        });
+    } catch (error) { container.textContent = "Unable to load inactive project candidates."; }
+}
+
+
+async function initializeLogin() {
+    const form = document.getElementById("login-form");
+    if (!form) return;
+    form.addEventListener("submit", async event => { event.preventDefault(); const feedback = document.getElementById("login-feedback"); feedback.textContent = "Signing in…"; const response = await fetch("/api/auth/login", {method: "POST", headers: {"Content-Type": "application/json"}, body: JSON.stringify({password: document.getElementById("login-password").value})}); if (!response.ok) { feedback.textContent = (await response.json()).detail || "Unable to sign in."; return; } window.location.href = "/maintenance"; });
+}
+initializeLogin();
+
+if (document.getElementById("maintenance-scan")) {
+    fetch("/api/auth/session").then(response => response.json()).then(data => { window.maintenanceCsrf = data.csrf_token; });
 }
