@@ -1,0 +1,12 @@
+{% extends "base.html" %}
+{% block title %}Logs - VPS Management{% endblock %}
+{% block content %}
+<header class="header">
+    <div><h1>System Logs</h1><p>Recent events from the server journal</p></div>
+    <button id="refresh-logs" class="button">Refresh</button>
+</header>
+<section class="panel">
+    <div class="panel-header panel-header-row"><div><h2 id="log-source">System journal</h2><p id="log-message">Loading latest entries...</p></div><span id="log-count" class="muted-label"></span></div>
+    <pre id="logs-output" class="log-output">Loading...</pre>
+</section>
+{% endblock %}

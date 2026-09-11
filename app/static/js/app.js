@@ -61,6 +61,8 @@ async function loadDashboard() {
         document.getElementById("uptime").textContent =
             `${data.uptime.days}d ${data.uptime.hours}h ${data.uptime.minutes}m`;
 
+        setDashboardDetail(data);
+
 
     } catch (error) {
 
@@ -432,10 +434,7 @@ if (document.getElementById("cpu")) {
 
     loadDashboard();
 
-    setInterval(
-        loadDashboard,
-        5000
-    );
+    setInterval(loadDashboard, 10000);
 }
 
 async function loadNginx() {
@@ -800,6 +799,21 @@ async function loadProjects() {
 
                                 </div>
 
+                                <div class="project-detail">
+
+                                    <span>
+                                        Last Detected Change
+                                    </span>
+
+                                    <strong>
+                                        ${project.activity?.last_modified
+                            ? new Date(project.activity.last_modified).toLocaleString()
+                            : "-"
+                        }
+                                    </strong>
+
+                                </div>
+
 
                                 <div class="project-detail">
 
@@ -910,3 +924,105 @@ loadServers();
 loadServices();
 
 loadProjects();
+
+
+function formatBytes(bytes) {
+    if (!bytes) return "0 B";
+    const units = ["B", "KB", "MB", "GB", "TB"];
+    const index = Math.min(Math.floor(Math.log(bytes) / Math.log(1024)), units.length - 1);
+    return `${(bytes / (1024 ** index)).toFixed(index ? 1 : 0)} ${units[index]}`;
+}
+
+
+function setDashboardDetail(data) {
+    const alertsPanel = document.getElementById("alerts-panel");
+    if (!alertsPanel) return;
+
+    const warnings = data.warnings || [];
+    alertsPanel.hidden = warnings.length === 0;
+    if (warnings.length) {
+        const names = warnings.map(item => item.resource.toUpperCase()).join(", ");
+        document.getElementById("alerts-title").textContent = `${names} usage is above its warning threshold`;
+        document.getElementById("alerts-copy").textContent = warnings.map(item => `${item.resource.toUpperCase()} ${item.percent.toFixed(1)}% (limit ${item.threshold}%)`).join(" · ");
+    }
+
+    const serviceContainer = document.getElementById("dashboard-services");
+    serviceContainer.replaceChildren();
+    (data.services || []).forEach(service => {
+        const row = document.createElement("div");
+        row.className = "health-row";
+        const name = document.createElement("strong");
+        name.textContent = service.name;
+        const status = document.createElement("span");
+        status.className = `service-status ${service.status}`;
+        status.textContent = service.status.replaceAll("_", " ");
+        row.append(name, status);
+        serviceContainer.append(row);
+    });
+
+    const processes = document.getElementById("top-processes");
+    processes.replaceChildren();
+    (data.top_processes || []).forEach(process => {
+        const row = document.createElement("div");
+        row.className = "process-row";
+        const name = document.createElement("strong");
+        name.textContent = `${process.name} · #${process.pid}`;
+        const usage = document.createElement("span");
+        usage.textContent = `CPU ${process.cpu_percent}% · RAM ${process.memory_percent}%`;
+        row.append(name, usage);
+        processes.append(row);
+    });
+
+    document.getElementById("network-received").textContent = formatBytes(data.network.bytes_received);
+    document.getElementById("network-sent").textContent = formatBytes(data.network.bytes_sent);
+    document.getElementById("last-updated").textContent = new Date(data.generated_at).toLocaleTimeString();
+}
+
+
+async function loadLogs() {
+    const output = document.getElementById("logs-output");
+    if (!output) return;
+    output.textContent = "Loading...";
+    try {
+        const response = await fetch("/api/logs/?lines=100");
+        const data = await response.json();
+        document.getElementById("log-source").textContent = `Source: ${data.source}`;
+        document.getElementById("log-message").textContent = data.message || "Latest entries from the host.";
+        document.getElementById("log-count").textContent = `${data.lines.length} entries`;
+        output.textContent = data.lines.join("\n") || "No log entries available.";
+    } catch (error) {
+        output.textContent = "Failed to load system logs.";
+    }
+}
+
+
+async function loadSettings() {
+    const form = document.getElementById("settings-form");
+    if (!form) return;
+    try {
+        const response = await fetch("/api/settings/");
+        const settings = await response.json();
+        Object.entries(settings).forEach(([key, value]) => { if (form.elements[key]) form.elements[key].value = value; });
+    } catch (error) {
+        document.getElementById("settings-feedback").textContent = "Could not load settings.";
+    }
+    form.addEventListener("submit", async event => {
+        event.preventDefault();
+        const feedback = document.getElementById("settings-feedback");
+        const values = Object.fromEntries(new FormData(form));
+        Object.keys(values).forEach(key => { values[key] = Number(values[key]); });
+        feedback.textContent = "Saving...";
+        try {
+            const response = await fetch("/api/settings/", {method: "PUT", headers: {"Content-Type": "application/json"}, body: JSON.stringify(values)});
+            if (!response.ok) throw new Error("Failed");
+            feedback.textContent = "Saved successfully.";
+        } catch (error) { feedback.textContent = "Unable to save settings."; }
+    });
+}
+
+
+if (document.getElementById("logs-output")) {
+    loadLogs();
+    document.getElementById("refresh-logs").addEventListener("click", loadLogs);
+}
+loadSettings();

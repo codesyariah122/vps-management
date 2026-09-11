@@ -1,0 +1,15 @@
+{% extends "base.html" %}
+{% block title %}Settings - VPS Management{% endblock %}
+{% block content %}
+<header class="header"><div><h1>Settings</h1><p>Monitoring thresholds and dashboard refresh behavior</p></div></header>
+<section class="panel settings-panel">
+    <div class="panel-header"><h2>Monitoring preferences</h2><p>Alerts appear when a resource reaches its warning threshold.</p></div>
+    <form id="settings-form" class="settings-form">
+        <label>Refresh interval <span>Seconds</span><input name="refresh_interval" type="number" min="5" max="300" required></label>
+        <label>CPU warning <span>Percent</span><input name="cpu_warning" type="number" min="50" max="100" required></label>
+        <label>Memory warning <span>Percent</span><input name="memory_warning" type="number" min="50" max="100" required></label>
+        <label>Disk warning <span>Percent</span><input name="disk_warning" type="number" min="50" max="100" required></label>
+        <div class="form-actions"><button class="button" type="submit">Save settings</button><span id="settings-feedback" aria-live="polite"></span></div>
+    </form>
+</section>
+{% endblock %}

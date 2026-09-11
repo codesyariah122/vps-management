@@ -8,6 +8,8 @@ from app.api.routes import (
     services,
     nginx,
     projects,
+    logs,
+    settings,
 )
 
 
@@ -71,6 +73,16 @@ async def projects_page(request: Request):
         name="projects.html",
     )
 
+
+@app.get("/logs")
+async def logs_page(request: Request):
+    return templates.TemplateResponse(request=request, name="logs.html")
+
+
+@app.get("/settings")
+async def settings_page(request: Request):
+    return templates.TemplateResponse(request=request, name="settings.html")
+
 @app.get("/health")
 async def health():
 
@@ -114,3 +126,6 @@ app.include_router(
     prefix="/api/projects",
     tags=["Projects"],
 )
+
+app.include_router(logs.router, prefix="/api/logs", tags=["Logs"])
+app.include_router(settings.router, prefix="/api/settings", tags=["Settings"])

@@ -1,3 +1,4 @@
+from datetime import datetime, timezone
 from pathlib import Path
 
 from app.services.nginx import (
@@ -124,6 +125,18 @@ def get_git_info(path: Path):
         }
 
 
+def get_project_activity(path: Path) -> dict:
+    """Provide a useful project signal without reading source contents."""
+    try:
+        modified = datetime.fromtimestamp(
+            path.stat().st_mtime,
+            tz=timezone.utc,
+        ).isoformat()
+        return {"last_modified": modified}
+    except OSError:
+        return {"last_modified": None}
+
+
 def get_nginx_prefix():
 
     config_path = get_nginx_config_path()
@@ -231,6 +244,7 @@ def build_project(
         "ssl": ssl,
         "type": "filesystem",
         "proxy_pass": proxy_pass or [],
+        "activity": get_project_activity(path) if is_directory else {"last_modified": None},
     }
 
 
@@ -262,6 +276,7 @@ def build_proxy_project(
         "ssl": ssl,
         "type": "proxy",
         "proxy_pass": proxy_pass,
+        "activity": {"last_modified": None},
     }
 
 

@@ -72,6 +72,15 @@ Dashboard - VPS Management
 
 </section>
 
+<section id="alerts-panel" class="alerts-panel" hidden>
+    <div>
+        <span class="eyebrow">Needs attention</span>
+        <h2 id="alerts-title">Resource alert</h2>
+        <p id="alerts-copy"></p>
+    </div>
+    <a href="/settings" class="button button-secondary">Alert settings</a>
+</section>
+
 
 <section class="panel">
 
@@ -127,6 +136,29 @@ Dashboard - VPS Management
 
     </div>
 
+</section>
+
+<section class="dashboard-lower-grid">
+    <section class="panel">
+        <div class="panel-header panel-header-row">
+            <div><h2>Service health</h2><p>Core service availability</p></div>
+            <a href="/services" class="text-link">View services</a>
+        </div>
+        <div id="dashboard-services" class="health-list"><div class="loading">Loading services...</div></div>
+    </section>
+    <section class="panel">
+        <div class="panel-header"><h2>Top processes</h2><p>Current CPU and memory usage</p></div>
+        <div id="top-processes" class="process-list"><div class="loading">Loading processes...</div></div>
+    </section>
+</section>
+
+<section class="panel network-panel">
+    <div class="panel-header"><h2>Network traffic</h2><p>Aggregate traffic since last system boot</p></div>
+    <div class="system-grid">
+        <div class="system-item"><span>Received</span><strong id="network-received">--</strong></div>
+        <div class="system-item"><span>Sent</span><strong id="network-sent">--</strong></div>
+        <div class="system-item"><span>Last updated</span><strong id="last-updated">--</strong></div>
+    </div>
 </section>
 
 {% endblock %}

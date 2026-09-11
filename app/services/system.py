@@ -1,6 +1,7 @@
 import platform
 import socket
 import time
+from datetime import datetime, timezone
 
 import psutil
 
@@ -56,6 +57,10 @@ def get_system_info():
         },
 
         "uptime": get_uptime(),
+
+        "network": get_network_info(),
+
+        "generated_at": datetime.now(timezone.utc).isoformat(),
     }
 
 
@@ -102,3 +107,41 @@ def get_uptime():
         "hours": hours,
         "minutes": minutes,
     }
+
+
+def get_network_info():
+    """Return aggregate network counters without exposing connections."""
+    counters = psutil.net_io_counters()
+
+    return {
+        "bytes_sent": counters.bytes_sent,
+        "bytes_received": counters.bytes_recv,
+        "packets_sent": counters.packets_sent,
+        "packets_received": counters.packets_recv,
+    }
+
+
+def get_top_processes(limit: int = 8):
+    """Return a small resource-heavy process summary for diagnostics."""
+    processes = []
+
+    for process in psutil.process_iter([
+        "pid", "name", "memory_percent", "cpu_percent", "status",
+    ]):
+        try:
+            info = process.info
+            processes.append({
+                "pid": info["pid"],
+                "name": info["name"] or "Unknown",
+                "cpu_percent": round(info["cpu_percent"] or 0, 1),
+                "memory_percent": round(info["memory_percent"] or 0, 1),
+                "status": info["status"] or "unknown",
+            })
+        except (psutil.NoSuchProcess, psutil.AccessDenied, psutil.ZombieProcess):
+            continue
+
+    return sorted(
+        processes,
+        key=lambda item: (item["cpu_percent"], item["memory_percent"]),
+        reverse=True,
+    )[:limit]
