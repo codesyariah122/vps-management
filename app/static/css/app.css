@@ -936,6 +936,10 @@ body {
 .eyebrow { color: #b45309; font-size: 12px; font-weight: 700; letter-spacing: .06em; text-transform: uppercase; }
 .dashboard-lower-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 24px; margin-top: 24px; }
 .network-panel { margin-top: 24px; }
+.network-header { display: flex; align-items: flex-start; justify-content: space-between; gap: 16px; }
+.network-live { display: inline-flex; align-items: center; gap: 7px; color: #15803d; font-size: 12px; font-weight: 700; }.network-live span { width: 8px; height: 8px; border-radius: 50%; background: #22c55e; box-shadow: 0 0 0 5px #dcfce7; }
+.network-chart-layout { display: grid; grid-template-columns: minmax(0, 2fr) minmax(220px, .9fr); gap: 28px; align-items: stretch; }.network-chart-wrap { position: relative; min-height: 230px; }.network-chart-wrap canvas { display: block; width: 100%; height: 230px; }.network-chart-legend { display: flex; gap: 16px; margin: 4px 0 0 56px; color: #64748b; font-size: 12px; }.network-chart-legend span { display: inline-flex; align-items: center; gap: 6px; }.network-chart-legend i { width: 18px; height: 3px; border-radius: 99px; }.network-chart-legend .received { background: #2563eb; }.network-chart-legend .sent { background: #14b8a6; }
+.network-live-stats { display: grid; grid-template-columns: 1fr 1fr; gap: 1px; overflow: hidden; border: 1px solid #e5eaf2; border-radius: 12px; background: #e5eaf2; }.network-live-stats div { padding: 15px; background: #fbfdff; }.network-live-stats div:last-child { grid-column: 1 / -1; }.network-live-stats span { display: block; margin-bottom: 5px; color: #64748b; font-size: 11px; }.network-live-stats strong { font-size: 15px; }
 .panel-header-row { display: flex; align-items: flex-start; justify-content: space-between; gap: 16px; }
 .health-list, .process-list { display: flex; flex-direction: column; gap: 8px; }
 .health-row, .process-row { display: flex; justify-content: space-between; align-items: center; gap: 12px; padding: 11px 0; border-bottom: 1px solid #eef2f7; font-size: 14px; }
@@ -955,6 +959,7 @@ body {
 .form-actions { display: flex; align-items: center; gap: 12px; grid-column: 1 / -1; }
 
 @media (max-width: 900px) { .dashboard-lower-grid { grid-template-columns: 1fr; } }
+@media (max-width: 900px) { .network-chart-layout { grid-template-columns: 1fr; } }
 @media (max-width: 640px) { .alerts-panel, .health-row, .process-row { align-items: flex-start; flex-direction: column; } .settings-form { grid-template-columns: 1fr; } }
 
 /* Project workspace */

@@ -153,11 +153,22 @@ Dashboard - VPS Management
 </section>
 
 <section class="panel network-panel">
-    <div class="panel-header"><h2>Network traffic</h2><p>Aggregate traffic since last system boot</p></div>
-    <div class="system-grid">
-        <div class="system-item"><span>Received</span><strong id="network-received">--</strong></div>
-        <div class="system-item"><span>Sent</span><strong id="network-sent">--</strong></div>
-        <div class="system-item"><span>Last updated</span><strong id="last-updated">--</strong></div>
+    <div class="panel-header network-header">
+        <div><h2>Network traffic</h2><p>Live throughput based on traffic sampled every 3 seconds</p></div>
+        <div class="network-live"><span></span>Live</div>
+    </div>
+    <div class="network-chart-layout">
+        <div class="network-chart-wrap">
+            <canvas id="network-chart" role="img" aria-label="Network throughput chart for received and sent traffic"></canvas>
+            <div class="network-chart-legend"><span><i class="received"></i>Received</span><span><i class="sent"></i>Sent</span></div>
+        </div>
+        <div class="network-live-stats">
+            <div><span>Download now</span><strong id="network-download-rate">--</strong></div>
+            <div><span>Upload now</span><strong id="network-upload-rate">--</strong></div>
+            <div><span>Received since boot</span><strong id="network-received">--</strong></div>
+            <div><span>Sent since boot</span><strong id="network-sent">--</strong></div>
+            <div><span>Last updated</span><strong id="last-updated">--</strong></div>
+        </div>
     </div>
 </section>
 

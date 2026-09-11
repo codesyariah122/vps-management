@@ -973,9 +973,85 @@ function setDashboardDetail(data) {
         processes.append(row);
     });
 
-    document.getElementById("network-received").textContent = formatBytes(data.network.bytes_received);
-    document.getElementById("network-sent").textContent = formatBytes(data.network.bytes_sent);
-    document.getElementById("last-updated").textContent = new Date(data.generated_at).toLocaleTimeString();
+    updateNetworkDisplay(data.network, data.generated_at);
+}
+
+
+function formatRate(bytes) {
+    return `${formatBytes(bytes)}/s`;
+}
+
+
+function updateNetworkDisplay(network, timestamp) {
+    const chart = document.getElementById("network-chart");
+    if (!chart || !network) return;
+    document.getElementById("network-received").textContent = formatBytes(network.bytes_received);
+    document.getElementById("network-sent").textContent = formatBytes(network.bytes_sent);
+    document.getElementById("network-download-rate").textContent = formatRate(network.received_rate || 0);
+    document.getElementById("network-upload-rate").textContent = formatRate(network.sent_rate || 0);
+    document.getElementById("last-updated").textContent = new Date(timestamp || Date.now()).toLocaleTimeString();
+    drawNetworkChart(network.history || []);
+}
+
+
+function drawNetworkChart(samples) {
+    const canvas = document.getElementById("network-chart");
+    if (!canvas) return;
+    const rect = canvas.getBoundingClientRect();
+    const ratio = window.devicePixelRatio || 1;
+    const width = Math.max(300, rect.width);
+    const height = Math.max(180, rect.height);
+    canvas.width = width * ratio;
+    canvas.height = height * ratio;
+    const context = canvas.getContext("2d");
+    context.scale(ratio, ratio);
+    context.clearRect(0, 0, width, height);
+    const styles = getComputedStyle(document.documentElement);
+    const grid = "#e8eef7";
+    const muted = styles.getPropertyValue("--muted-foreground").trim() || "#64748b";
+    const received = "#2563eb";
+    const sent = "#14b8a6";
+    const padding = {top: 18, right: 16, bottom: 30, left: 56};
+    const plotWidth = width - padding.left - padding.right;
+    const plotHeight = height - padding.top - padding.bottom;
+    const rates = samples.slice(1).map((sample, index) => {
+        const previous = samples[index];
+        const elapsed = sample.timestamp - previous.timestamp || 1;
+        return {received: Math.max(0, (sample.bytes_received - previous.bytes_received) / elapsed), sent: Math.max(0, (sample.bytes_sent - previous.bytes_sent) / elapsed)};
+    });
+    const maxRate = Math.max(1, ...rates.flatMap(rate => [rate.received, rate.sent])) * 1.15;
+    context.font = "11px -apple-system, BlinkMacSystemFont, Segoe UI, sans-serif";
+    context.fillStyle = muted;
+    context.strokeStyle = grid;
+    context.lineWidth = 1;
+    for (let index = 0; index < 4; index += 1) {
+        const y = padding.top + (plotHeight / 3) * index;
+        context.beginPath(); context.moveTo(padding.left, y); context.lineTo(width - padding.right, y); context.stroke();
+        const value = maxRate * (1 - index / 3);
+        context.fillText(formatRate(value), 0, y + 4);
+    }
+    if (!rates.length) { context.fillText("Collecting network samples…", padding.left, padding.top + plotHeight / 2); return; }
+    const drawSeries = (key, color) => {
+        context.beginPath();
+        rates.forEach((rate, index) => {
+            const x = padding.left + (index / Math.max(rates.length - 1, 1)) * plotWidth;
+            const y = padding.top + plotHeight - (rate[key] / maxRate) * plotHeight;
+            if (index === 0) context.moveTo(x, y); else context.lineTo(x, y);
+        });
+        context.strokeStyle = color; context.lineWidth = 2.5; context.lineJoin = "round"; context.stroke();
+    };
+    drawSeries("received", received); drawSeries("sent", sent);
+    context.fillStyle = muted;
+    context.fillText(`${rates.length * 3}s ago`, padding.left, height - 8);
+    context.textAlign = "right"; context.fillText("Now", width - padding.right, height - 8); context.textAlign = "left";
+}
+
+
+async function refreshNetworkChart() {
+    try {
+        const response = await fetch("/api/dashboard/network");
+        if (response.ok) updateNetworkDisplay(await response.json(), Date.now());
+    } catch (error) { console.error("Network traffic error:", error); }
 }
 
 
@@ -1026,6 +1102,11 @@ if (document.getElementById("logs-output")) {
     document.getElementById("refresh-logs").addEventListener("click", loadLogs);
 }
 loadSettings();
+
+if (document.getElementById("network-chart")) {
+    setInterval(refreshNetworkChart, 3000);
+    window.addEventListener("resize", () => refreshNetworkChart());
+}
 
 
 let managedProjects = [];

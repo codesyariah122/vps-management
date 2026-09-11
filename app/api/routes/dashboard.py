@@ -1,7 +1,7 @@
 from fastapi import APIRouter
 
 from app.services.settings import get_settings
-from app.services.system import get_system_info, get_top_processes
+from app.services.system import get_network_info, get_system_info, get_top_processes
 from app.services.systemd import get_services
 
 
@@ -23,3 +23,8 @@ async def overview():
         "services": get_services(),
         "top_processes": get_top_processes(),
     }
+
+
+@router.get("/network")
+async def network_overview():
+    return get_network_info()

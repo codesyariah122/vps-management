@@ -1,9 +1,13 @@
 import platform
 import socket
 import time
+from collections import deque
 from datetime import datetime, timezone
 
 import psutil
+
+
+NETWORK_SAMPLES = deque(maxlen=80)
 
 
 def get_system_info():
@@ -110,14 +114,29 @@ def get_uptime():
 
 
 def get_network_info():
-    """Return aggregate network counters without exposing connections."""
+    """Return network totals and in-memory throughput samples."""
     counters = psutil.net_io_counters()
+
+    now = time.time()
+    sample = {
+        "timestamp": now,
+        "bytes_sent": counters.bytes_sent,
+        "bytes_received": counters.bytes_recv,
+    }
+    previous = NETWORK_SAMPLES[-1] if NETWORK_SAMPLES else None
+    elapsed = now - previous["timestamp"] if previous else 0
+    received_rate = max(0, (sample["bytes_received"] - previous["bytes_received"]) / elapsed) if elapsed else 0
+    sent_rate = max(0, (sample["bytes_sent"] - previous["bytes_sent"]) / elapsed) if elapsed else 0
+    NETWORK_SAMPLES.append(sample)
 
     return {
         "bytes_sent": counters.bytes_sent,
         "bytes_received": counters.bytes_recv,
         "packets_sent": counters.packets_sent,
         "packets_received": counters.packets_recv,
+        "received_rate": received_rate,
+        "sent_rate": sent_rate,
+        "history": list(NETWORK_SAMPLES),
     }
 
 
