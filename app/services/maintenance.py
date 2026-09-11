@@ -105,10 +105,14 @@ def get_maintenance_overview() -> dict:
 
 def get_inactive_project_candidates() -> list[dict]:
     active_paths = {Path(project["path"]).resolve() for project in get_projects() if project.get("path") and project.get("exists")}
-    parent_paths = {path.parent for path in active_paths}
-    for raw_path in os.getenv("VPS_MANAGEMENT_PROJECT_ROOTS", "").split(","):
-        if raw_path.strip() and Path(raw_path.strip()).is_dir():
-            parent_paths.add(Path(raw_path.strip()).resolve())
+    # Scan only administrator-configured root folders.  Deriving parents from
+    # active project paths can mistakenly classify framework source folders
+    # (for example app/Models) as inactive projects.
+    parent_paths = {
+        Path(raw_path.strip()).resolve()
+        for raw_path in os.getenv("VPS_MANAGEMENT_PROJECT_ROOTS", "").split(",")
+        if raw_path.strip() and Path(raw_path.strip()).is_dir()
+    }
     candidates = []
     for parent in parent_paths:
         try:
@@ -122,7 +126,7 @@ def get_inactive_project_candidates() -> list[dict]:
                     "id": hashlib.sha256(str(resolved).encode()).hexdigest()[:16], "name": path.name,
                     "path": str(resolved), "size": get_path_size(str(resolved)),
                     "last_modified": datetime.fromtimestamp(path.stat().st_mtime, tz=timezone.utc).isoformat(),
-                    "reason": "Not referenced by the current Nginx project inventory.",
+                    "reason": "Not referenced by the current Nginx project inventory within a configured project root.",
                 })
         except OSError:
             continue
