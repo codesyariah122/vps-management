@@ -1226,3 +1226,72 @@ async function loadProjectWorkspace() {
         document.addEventListener("keydown", event => { if (event.key === "Escape" && !document.getElementById("project-modal").hidden) closeProjectModal(); });
     } catch (error) { container.textContent = "Failed to load project workspace."; }
 }
+
+
+function setMaintenanceDetails(data) {
+    const alert = document.getElementById("maintenance-alert");
+    const findings = data.findings || [];
+    alert.hidden = findings.length === 0;
+    if (findings.length) {
+        document.getElementById("maintenance-alert-title").textContent = `${findings.length} resource issue${findings.length > 1 ? "s" : ""} need manual review`;
+        document.getElementById("maintenance-alert-copy").textContent = findings.map(item => item.message).join(" ");
+    }
+    const resources = document.getElementById("maintenance-resources"); resources.replaceChildren();
+    [["Disk", data.resources.disk], ["Memory", data.resources.memory], ["Swap", data.resources.swap]].forEach(([name, item]) => {
+        const card = document.createElement("div"); card.className = "maintenance-resource";
+        const label = document.createElement("span"); label.textContent = name;
+        const value = document.createElement("strong"); value.textContent = `${item.percent.toFixed(1)}%`;
+        const detail = document.createElement("small"); detail.textContent = `${formatBytes(item.used)} used · ${formatBytes(item.free || item.available)} available`;
+        card.append(label, value, detail); resources.append(card);
+    });
+    const storage = document.getElementById("storage-scan"); storage.replaceChildren();
+    data.storage_scan.filter(item => item.size !== null).sort((a, b) => b.size - a.size).forEach(item => {
+        const row = document.createElement("div"); row.className = "storage-row";
+        const name = document.createElement("div"); const label = document.createElement("strong"); label.textContent = item.name; const path = document.createElement("span"); path.textContent = item.path; name.append(label, path);
+        const size = document.createElement("strong"); size.textContent = formatBytes(item.size); row.append(name, size); storage.append(row);
+    });
+    const playbook = document.getElementById("maintenance-playbook"); playbook.replaceChildren();
+    data.playbook.forEach(item => {
+        const card = document.createElement("article"); card.className = "playbook-card";
+        const header = document.createElement("div"); const title = document.createElement("h3"); title.textContent = item.title; const risk = document.createElement("span"); risk.textContent = item.risk; header.append(title, risk);
+        const description = document.createElement("p"); description.textContent = item.description;
+        const command = document.createElement("code"); command.textContent = item.command;
+        const copy = document.createElement("button"); copy.type = "button"; copy.className = "button button-secondary"; copy.textContent = "Copy command"; copy.addEventListener("click", async () => { await navigator.clipboard?.writeText(item.command); copy.textContent = "Copied"; });
+        card.append(header, description, command, copy); playbook.append(card);
+    });
+}
+
+
+async function loadMaintenance() {
+    const button = document.getElementById("maintenance-scan");
+    if (!button) return;
+    button.disabled = true; button.textContent = "Scanning…";
+    try {
+        const response = await fetch("/api/maintenance/overview");
+        if (!response.ok) throw new Error("Scan failed");
+        setMaintenanceDetails(await response.json());
+    } catch (error) { button.textContent = "Scan unavailable"; return; }
+    button.disabled = false; button.textContent = "Run diagnostic scan";
+}
+
+
+async function loadMaintenanceSettings() {
+    const form = document.getElementById("maintenance-settings-form");
+    if (!form) return;
+    try {
+        const response = await fetch("/api/maintenance/settings"); const values = await response.json();
+        Object.entries(values).forEach(([key, value]) => { form.elements[key].value = value; });
+    } catch (error) { document.getElementById("maintenance-settings-feedback").textContent = "Could not load configuration."; }
+    form.addEventListener("submit", async event => {
+        event.preventDefault(); const feedback = document.getElementById("maintenance-settings-feedback");
+        const values = Object.fromEntries(new FormData(form)); Object.keys(values).forEach(key => { values[key] = Number(values[key]); });
+        try { const response = await fetch("/api/maintenance/settings", {method: "PUT", headers: {"Content-Type": "application/json"}, body: JSON.stringify(values)}); if (!response.ok) throw new Error("Save failed"); feedback.textContent = "Saved. Run a scan to apply the new thresholds."; } catch (error) { feedback.textContent = "Unable to save configuration."; }
+    });
+}
+
+
+if (document.getElementById("maintenance-scan")) {
+    document.getElementById("maintenance-scan").addEventListener("click", loadMaintenance);
+    loadMaintenanceSettings();
+    loadMaintenance();
+}

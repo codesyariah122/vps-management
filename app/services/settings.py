@@ -9,6 +9,11 @@ DEFAULT_SETTINGS = {
     "cpu_warning": 85,
     "memory_warning": 85,
     "disk_warning": 85,
+    "maintenance_disk_critical": 90,
+    "maintenance_memory_critical": 90,
+    "maintenance_swap_critical": 50,
+    "maintenance_log_retention_days": 14,
+    "maintenance_temp_file_days": 14,
 }
 
 

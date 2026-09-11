@@ -10,6 +10,7 @@ from app.api.routes import (
     projects,
     logs,
     settings,
+    maintenance,
 )
 
 
@@ -83,6 +84,11 @@ async def logs_page(request: Request):
 async def settings_page(request: Request):
     return templates.TemplateResponse(request=request, name="settings.html")
 
+
+@app.get("/maintenance")
+async def maintenance_page(request: Request):
+    return templates.TemplateResponse(request=request, name="maintenance.html")
+
 @app.get("/health")
 async def health():
 
@@ -129,3 +135,4 @@ app.include_router(
 
 app.include_router(logs.router, prefix="/api/logs", tags=["Logs"])
 app.include_router(settings.router, prefix="/api/settings", tags=["Settings"])
+app.include_router(maintenance.router, prefix="/api/maintenance", tags=["Maintenance"])

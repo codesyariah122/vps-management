@@ -1,0 +1,15 @@
+{% extends "base.html" %}
+{% block title %}Maintenance - VPS Management{% endblock %}
+{% block content %}
+<header class="header">
+    <div><h1>Maintenance &amp; Remediation</h1><p>Manual maintenance planning. Nothing is changed automatically.</p></div>
+    <button id="maintenance-scan" type="button" class="button">Run diagnostic scan</button>
+</header>
+<section id="maintenance-alert" class="alerts-panel" hidden><div><span class="eyebrow">Manual review needed</span><h2 id="maintenance-alert-title">Resource attention required</h2><p id="maintenance-alert-copy"></p></div></section>
+<section class="maintenance-layout">
+    <section class="panel"><div class="panel-header"><h2>Resource status</h2><p>Current capacity requiring manual review</p></div><div id="maintenance-resources" class="maintenance-resources"><div class="loading">Run a scan to load status.</div></div></section>
+    <section class="panel"><div class="panel-header"><h2>Maintenance configuration</h2><p>Thresholds guide the diagnostic results; no task runs automatically.</p></div><form id="maintenance-settings-form" class="settings-form maintenance-form"><label>Disk critical <span>Percent used</span><input name="maintenance_disk_critical" type="number" min="70" max="100" required></label><label>Memory critical <span>Percent used</span><input name="maintenance_memory_critical" type="number" min="70" max="100" required></label><label>Swap warning <span>Percent used</span><input name="maintenance_swap_critical" type="number" min="10" max="100" required></label><label>Log retention <span>Days for manual journal cleanup</span><input name="maintenance_log_retention_days" type="number" min="1" max="365" required></label><label>Temporary-file review <span>Files older than days</span><input name="maintenance_temp_file_days" type="number" min="1" max="365" required></label><div class="form-actions"><button class="button" type="submit">Save configuration</button><span id="maintenance-settings-feedback" aria-live="polite"></span></div></form></section>
+</section>
+<section class="panel maintenance-panel"><div class="panel-header"><h2>Storage scan</h2><p>Largest system areas to inspect before cleaning</p></div><div id="storage-scan" class="storage-scan"><div class="loading">Run a scan to inspect storage.</div></div></section>
+<section class="panel maintenance-panel"><div class="panel-header"><h2>Manual remediation playbook</h2><p>Review each command and run it yourself in a terminal only when appropriate.</p></div><div id="maintenance-playbook" class="maintenance-playbook"><div class="loading">Run a scan to build your playbook.</div></div></section>
+{% endblock %}

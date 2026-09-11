@@ -12,7 +12,7 @@
         {% endblock %}
     </title>
 
-    <link rel="stylesheet" href="{{ url_for('static', path='css/app.css') }}?v=202609111730">
+    <link rel="stylesheet" href="{{ url_for('static', path='css/app.css') }}?v=202609111745">
 </head>
 
 <body>
@@ -47,6 +47,10 @@
                 Logs
             </a>
 
+            <a class="{% if request.url.path == '/maintenance' %}active{% endif %}" href="/maintenance">
+                Maintenance
+            </a>
+
             <a class="{% if request.url.path == '/settings' %}active{% endif %}" href="/settings">
                 Settings
             </a>
@@ -64,7 +68,7 @@
     </main>
 
 
-    <script src="{{ url_for('static', path='js/app.js') }}?v=202609111730"></script>
+    <script src="{{ url_for('static', path='js/app.js') }}?v=202609111745"></script>
 
 </body>
 
